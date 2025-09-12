@@ -71,12 +71,12 @@ ${request.settings.language === 'English'
   ? `
 **CRITICAL RULES - RESPOND ONLY IN ENGLISH:**
 - Language: ${request.settings.language} (MANDATORY!)
-- Length: ${request.settings.length} (Kurz/Short: 2 sentences, Mittel/Medium: 4 sentences, Lang/Long: 6 sentences)
+- Length: ${request.settings.length} (Kurz/Short: 1 sentences, Mittel/Medium: 2-3 sentences, Lang/Long: 4-5 sentences)
 - Use the following current content for the group:`
   : `
 **WICHTIGE REGELN:**
 - Sprache: ${request.settings.language}
-- Länge: ${request.settings.length} (Kurz: 2 Sätze, Mittel: 4 Sätze, Lang: 6 Sätze)
+- Länge: ${request.settings.length} (Kurz: 1 Sätze, Mittel: 2-3 Sätze, Lang: 4-5 Sätze)
 - Nutze die folgenden aktuellen Inhalte zur Gruppe:`
 }
   ${request.groupContent}
