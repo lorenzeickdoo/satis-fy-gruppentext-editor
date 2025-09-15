@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { LogIn, Shield, AlertCircle, RefreshCw } from 'lucide-react';
+import { LogIn, Shield, AlertCircle, RefreshCw, Code } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { clearMsalState } from '../../services/auth';
 
 const LoginPage: React.FC = () => {
-  const { login, isLoading, error } = useAuth();
+  const { login, isLoading, error, devBypass } = useAuth();
   const [loginMethod, setLoginMethod] = useState<'redirect' | 'popup'>('redirect');
   const [isResetting, setIsResetting] = useState(false);
+  
+  // Check if development bypass is enabled
+  const isDevBypassEnabled = import.meta.env.VITE_DEV_BYPASS_SSO === 'true';
 
   const handleLogin = async () => {
     try {
@@ -29,6 +32,10 @@ const LoginPage: React.FC = () => {
     } finally {
       setIsResetting(false);
     }
+  };
+
+  const handleDevBypass = () => {
+    devBypass();
   };
 
   return (
@@ -125,6 +132,18 @@ const LoginPage: React.FC = () => {
                     aria-hidden="true" 
                   />
                   {isResetting ? 'Zurücksetzen...' : 'Login-Status zurücksetzen'}
+                </button>
+              )}
+
+              {/* Development Bypass Button - only show in development */}
+              {isDevBypassEnabled && (
+                <button
+                  type="button"
+                  onClick={handleDevBypass}
+                  className="w-full flex justify-center py-2 px-4 border border-orange-300 text-sm font-medium rounded-md text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 mt-3"
+                >
+                  <Code className="h-4 w-4 mr-2" aria-hidden="true" />
+                  🚧 Development Bypass
                 </button>
               )}
             </div>

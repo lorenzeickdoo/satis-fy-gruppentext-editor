@@ -14,6 +14,7 @@ interface ImportMetaEnv {
   readonly VITE_AZURE_REDIRECT_URI: string
   readonly VITE_AZURE_AUTHORITY: string
   readonly VITE_AZURE_GROUP_ID: string
+  readonly VITE_DEV_BYPASS_SSO: string
 }
 
 interface ImportMeta {

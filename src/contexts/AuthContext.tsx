@@ -17,6 +17,7 @@ interface AuthContextType extends AuthState {
   logout: () => Promise<void>;
   getAccessToken: () => Promise<string | null>;
   refreshUser: () => Promise<void>;
+  devBypass: () => void;
 }
 
 const defaultAuthContext: AuthContextType = {
@@ -27,7 +28,8 @@ const defaultAuthContext: AuthContextType = {
   login: async () => {},
   logout: async () => {},
   getAccessToken: async () => null,
-  refreshUser: async () => {}
+  refreshUser: async () => {},
+  devBypass: () => {}
 };
 
 export const AuthContext = createContext<AuthContextType>(defaultAuthContext);
@@ -213,12 +215,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  // Development bypass function
+  const devBypass = useCallback(() => {
+    if (import.meta.env.VITE_DEV_BYPASS_SSO === 'true') {
+      const mockUser: User = {
+        id: 'dev-user-123',
+        email: 'developer@satis-fy.com',
+        name: 'Development User',
+        givenName: 'Development',
+        surname: 'User',
+        jobTitle: 'Developer',
+        groups: [import.meta.env.VITE_AZURE_GROUP_ID],
+        isAuthorized: true
+      };
+
+      setAuthState({
+        isAuthenticated: true,
+        isLoading: false,
+        user: mockUser,
+        error: null
+      });
+
+      console.log('🚧 Development bypass activated - Mock user logged in');
+    } else {
+      console.warn('Development bypass is disabled in production');
+    }
+  }, []);
+
   const contextValue: AuthContextType = {
     ...authState,
     login,
     logout,
     getAccessToken,
-    refreshUser
+    refreshUser,
+    devBypass
   };
 
   return (
