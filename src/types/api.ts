@@ -39,4 +39,6 @@ export interface TextGroup {
 export interface AISettings {
   length: string;
   language: string;
+  tone: string;
+  style: string;
 }

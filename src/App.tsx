@@ -4,6 +4,8 @@ import { fetchGroupTextData, updateGroupText } from './services/api';
 import { generateTextWithOpenAI } from './services/openai';
 import { saveAITextEvaluation } from './services/supabase';
 import { TextGroup, AISettings, ApiResponse } from './types/api';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import UserProfile from './components/auth/UserProfile';
 
 function App() {
   const [textGroups, setTextGroups] = useState<TextGroup[]>([]);
@@ -27,7 +29,9 @@ function App() {
 
   const [aiSettings, setAISettings] = useState<AISettings>({
     length: 'Kurz',
-    language: 'English'
+    language: 'English',
+    tone: 'professional',
+    style: 'structured'
   });
 
   const [activeTextArea, setActiveTextArea] = useState<string>('');
@@ -452,7 +456,8 @@ function App() {
   // Show empty state when no data has been loaded yet
   if (!hasSearched && textGroups.length === 0) {
     return (
-      <div className="flex h-screen bg-gray-50 font-sans overflow-hidden">
+      <ProtectedRoute>
+        <div className="flex h-screen bg-gray-50 font-sans overflow-hidden">
         {/* Sidebar */}
         <div className="w-60 bg-black text-white flex flex-col flex-shrink-0">
           <div className="px-6 py-8">
@@ -512,12 +517,14 @@ function App() {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </ProtectedRoute>
     );
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 font-sans overflow-hidden">
+    <ProtectedRoute>
+      <div className="flex h-screen bg-gray-50 font-sans overflow-hidden">
       {/* Sidebar */}
       <div className="w-60 bg-black text-white flex flex-col flex-shrink-0">
         <div className="px-6 py-8">
@@ -564,34 +571,37 @@ function App() {
                 </button>
               </div>
             </div>
-            <div className="flex items-baseline space-x-4">
+            <div className="flex items-center space-x-6">
               <div className="text-sm text-gray-500">
                 Job Name: {jobData.jobName}
               </div>
-              <div className="flex flex-col space-y-2">
-                <button
-                  onClick={handleUpdate}
-                  disabled={!apiResponse || !hasChanges || isUpdating}
-                  className="px-4 py-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isUpdating ? 'Updating...' : 'Update'}
-                </button>
-                {updateStatus && (
-                  <div className="text-xs text-center max-w-32">
-                    {updateStatus}
-                  </div>
-                )}
-                <button
-                  onClick={toggleAITool}
-                  className={`flex items-center justify-center space-x-2 px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                    showAITool 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  <Settings className="w-4 h-4" />
-                  <span>AI Tool</span>
-                </button>
+              <div className="flex items-center space-x-4">
+                <div className="flex flex-col space-y-2">
+                  <button
+                    onClick={handleUpdate}
+                    disabled={!apiResponse || !hasChanges || isUpdating}
+                    className="px-4 py-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUpdating ? 'Updating...' : 'Update'}
+                  </button>
+                  {updateStatus && (
+                    <div className="text-xs text-center max-w-32">
+                      {updateStatus}
+                    </div>
+                  )}
+                  <button
+                    onClick={toggleAITool}
+                    className={`flex items-center justify-center space-x-2 px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      showAITool 
+                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>AI Tool</span>
+                  </button>
+                </div>
+                <UserProfile />
               </div>
             </div>
           </div>
@@ -612,7 +622,10 @@ function App() {
                     ) : (
                       <ChevronRight className="w-4 h-4 text-gray-600 mr-2" />
                     )}
-                    <h3 className="text-base font-medium text-gray-900">{group.name}</h3>
+                    <h3 className="text-base font-medium text-gray-900">
+                      <span className="text-gray-500 mr-2">#{group.originalId}</span>
+                      {group.name}
+                    </h3>
                   </div>
                   
                   {group.expanded && (
@@ -996,7 +1009,8 @@ function App() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </ProtectedRoute>
   );
 }
 

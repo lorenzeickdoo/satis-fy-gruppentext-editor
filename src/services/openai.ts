@@ -1,5 +1,5 @@
 // OpenAI API service
-const OPENROUTER_API_KEY = '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';
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 export interface OpenAIRequest {
@@ -20,8 +20,8 @@ export interface OpenAIRequest {
 }
 
 export const generateTextWithOpenAI = async (request: OpenAIRequest): Promise<string> => {
-  if (OPENROUTER_API_KEY === 'YOUR_OPENROUTER_API_KEY_HERE') {
-    throw new Error('OpenRouter API Key ist nicht konfiguriert. Bitte setzen Sie Ihren API Key in src/services/openai.ts');
+  if (!OPENROUTER_API_KEY) {
+    throw new Error('OpenRouter API Key ist nicht konfiguriert. Bitte setzen Sie VITE_OPENROUTER_API_KEY in der .env Datei');
   }
 
   // Build articles context
@@ -164,8 +164,8 @@ Erzeuge den finalen Beschreibungstext:`;
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'HTTP-Referer': 'https://localhost:5173',
+        'Authorization': OPENROUTER_API_KEY,
+        //'HTTP-Referer': 'https://localhost:5173',
       },
       body: JSON.stringify({
         model: 'openai/gpt-4.1-mini',
