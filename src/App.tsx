@@ -469,6 +469,11 @@ function App() {
               Gruppentexte
             </div>
           </nav>
+          
+          {/* User Profile at bottom of sidebar */}
+          <div className="px-4 py-6 border-t border-gray-700">
+            <UserProfile />
+          </div>
         </div>
 
         {/* Main Content */}
@@ -537,6 +542,11 @@ function App() {
           </div>
         </nav>
         
+        {/* User Profile at bottom of sidebar */}
+        <div className="px-4 py-6 border-t border-gray-700">
+          <UserProfile />
+        </div>
+        
       </div>
 
       {/* Main Content */}
@@ -575,33 +585,30 @@ function App() {
               <div className="text-sm text-gray-500">
                 Job Name: {jobData.jobName}
               </div>
-              <div className="flex items-center space-x-4">
-                <div className="flex flex-col space-y-2">
-                  <button
-                    onClick={handleUpdate}
-                    disabled={!apiResponse || !hasChanges || isUpdating}
-                    className="px-4 py-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isUpdating ? 'Updating...' : 'Update'}
-                  </button>
-                  {updateStatus && (
-                    <div className="text-xs text-center max-w-32">
-                      {updateStatus}
-                    </div>
-                  )}
-                  <button
-                    onClick={toggleAITool}
-                    className={`flex items-center justify-center space-x-2 px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                      showAITool 
-                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    <Settings className="w-4 h-4" />
-                    <span>AI Tool</span>
-                  </button>
-                </div>
-                <UserProfile />
+              <div className="flex flex-col space-y-2">
+                <button
+                  onClick={handleUpdate}
+                  disabled={!apiResponse || !hasChanges || isUpdating}
+                  className="px-4 py-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUpdating ? 'Updating...' : 'Update'}
+                </button>
+                {updateStatus && (
+                  <div className="text-xs text-center max-w-32">
+                    {updateStatus}
+                  </div>
+                )}
+                <button
+                  onClick={toggleAITool}
+                  className={`flex items-center justify-center space-x-2 px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    showAITool 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>AI Tool</span>
+                </button>
               </div>
             </div>
           </div>
@@ -623,7 +630,6 @@ function App() {
                       <ChevronRight className="w-4 h-4 text-gray-600 mr-2" />
                     )}
                     <h3 className="text-base font-medium text-gray-900">
-                      <span className="text-gray-500 mr-2">#{group.originalId}</span>
                       {group.name}
                     </h3>
                   </div>

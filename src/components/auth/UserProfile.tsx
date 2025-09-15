@@ -22,21 +22,19 @@ const UserProfile: React.FC = () => {
     <div className="relative">
       <button
         type="button"
-        className="flex items-center space-x-3 text-sm bg-white border border-gray-300 rounded-md px-3 py-2 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="flex items-center space-x-2 text-sm bg-gray-800 border border-gray-600 rounded-md px-3 py-2 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       >
-        <div className="flex items-center space-x-2">
-          <User className="h-5 w-5 text-gray-400" />
-          <div className="text-left">
-            <p className="font-medium text-gray-900">{user.name}</p>
-            <p className="text-xs text-gray-500">{user.email}</p>
-          </div>
+        <User className="h-4 w-4 text-gray-300 flex-shrink-0" />
+        <div className="text-left flex-1 min-w-0">
+          <p className="font-medium text-white text-sm truncate">{user.name}</p>
+          <p className="text-xs text-gray-400 truncate">{user.email}</p>
         </div>
-        <ChevronDown className="h-4 w-4 text-gray-400" />
+        <ChevronDown className="h-3 w-3 text-gray-400 flex-shrink-0" />
       </button>
 
       {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+        <div className="absolute bottom-full right-0 mb-2 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-10">
           <div className="px-4 py-3 border-b border-gray-100">
             <p className="text-sm font-medium text-gray-900">{user.name}</p>
             <p className="text-sm text-gray-500">{user.email}</p>

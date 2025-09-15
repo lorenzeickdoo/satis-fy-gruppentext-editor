@@ -143,8 +143,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuthState(prev => ({ ...prev, isLoading: true }));
     
     try {
+      // Check if this is development bypass user
+      if (authState.user?.id === 'dev-user-123') {
+        // For development bypass, clear state immediately and show success message
+        setAuthState({
+          isAuthenticated: false,
+          isLoading: false,
+          user: null,
+          error: null
+        });
+        
+        // Add logout success indicator to localStorage
+        localStorage.setItem('logout_success', 'true');
+        return;
+      }
+      
       await msalLogout();
-      // State will be updated after redirect
+      // State will be updated after redirect for real SSO logout
     } catch (error: any) {
       const errorMessage = handleAuthError(error);
       setAuthState(prev => ({
@@ -154,7 +169,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }));
       throw error;
     }
-  }, []);
+  }, [authState.user]);
 
   // Get access token
   const getAccessToken = useCallback(async (): Promise<string | null> => {

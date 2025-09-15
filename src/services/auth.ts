@@ -258,6 +258,9 @@ export const logout = async (): Promise<void> => {
   try {
     const accounts = msalInstance.getAllAccounts();
     if (accounts.length > 0) {
+      // Set logout success flag before redirect
+      localStorage.setItem('logout_success', 'true');
+      
       await msalInstance.logoutRedirect({
         account: accounts[0],
         postLogoutRedirectUri: window.location.origin
