@@ -107,26 +107,69 @@ export const initializeMsal = async (): Promise<void> => {
       const response = await msalInstance.handleRedirectPromise();
       if (response && response.account) {
         msalInstance.setActiveAccount(response.account);
+
+        // Validate group claims are present after successful authentication
+        if (response.idToken) {
+          const decodedToken = jwtDecode<DecodedToken>(response.idToken);
+
+          // Debug logging for token claims
+          if (import.meta.env.VITE_DEBUG === 'true') {
+            console.log('Token claims received:', {
+              hasGroups: !!decodedToken.groups,
+              groupsCount: decodedToken.groups?.length || 0,
+              groups: decodedToken.groups,
+              email: decodedToken.preferred_username || decodedToken.email,
+              name: decodedToken.name
+            });
+          }
+
+          // Check if groups claim is missing
+          if (!decodedToken.groups || decodedToken.groups.length === 0) {
+            console.error('CRITICAL: groups claim is missing from ID token');
+            console.error('This means Azure AD Token Configuration is not set up correctly');
+            console.error('Solution: Go to Azure Portal → App Registrations → Token configuration → Add groups claim');
+
+            throw new Error('GROUPS_CLAIM_MISSING');
+          }
+
+          // Validate user is in authorized group
+          const authorizedGroupId = import.meta.env.VITE_AZURE_GROUP_ID;
+          const isAuthorized = decodedToken.groups.includes(authorizedGroupId);
+
+          if (!isAuthorized) {
+            console.error('User is not in the authorized group');
+            console.error(`User groups: ${decodedToken.groups.join(', ')}`);
+            console.error(`Required group: ${authorizedGroupId}`);
+
+            throw new Error('USER_NOT_AUTHORIZED');
+          }
+        }
       }
     } catch (redirectError: any) {
-      console.warn('Redirect handling failed (this is expected if redirect URI is not configured):', redirectError);
-      
+      console.warn('Redirect handling failed:', redirectError);
+
       // Check for specific MSAL errors that indicate redirect URI issues
-      if (redirectError?.errorCode === 'no_token_request_cache_error' || 
+      if (redirectError?.errorCode === 'no_token_request_cache_error' ||
           redirectError?.message?.includes('no_token_request_cache_error') ||
           redirectError?.message?.includes('redirect_uri')) {
         console.warn('Redirect URI is likely not configured in Azure AD App Registration');
         // Don't throw here - let the app continue to show login page
+      } else if (redirectError?.message === 'GROUPS_CLAIM_MISSING') {
+        // Re-throw with better error message
+        throw redirectError;
+      } else if (redirectError?.message === 'USER_NOT_AUTHORIZED') {
+        // Re-throw with better error message
+        throw redirectError;
       } else {
         // Re-throw other redirect errors
         throw redirectError;
       }
     }
-    
+
     console.log('MSAL initialized successfully');
   } catch (error) {
     console.error('Failed to initialize MSAL:', error);
-    
+
     // Create more specific error messages
     if (error instanceof Error) {
       if (error.message.includes('VITE_AZURE_CLIENT_ID')) {
@@ -138,8 +181,14 @@ export const initializeMsal = async (): Promise<void> => {
       if (error.message?.includes('redirect_uri') || error.message?.includes('AADSTS50011')) {
         throw new Error('Redirect URI ist nicht konfiguriert. Der Kunde muss http://localhost:5173/auth/callback in der Azure AD App Registration hinzufügen.');
       }
+      if (error.message === 'GROUPS_CLAIM_MISSING') {
+        throw new Error('Azure AD ist nicht korrekt konfiguriert: Die "groups" Berechtigung fehlt im Token.\n\nLösung:\n1. Gehen Sie zum Azure Portal\n2. App Registrations → Ihre App → Token configuration\n3. Klicken Sie auf "Add groups claim"\n4. Wählen Sie "Security groups" und aktivieren Sie "Group ID" für ID tokens\n5. Speichern Sie die Konfiguration\n\nFalls Sie bereits Gruppenmitglied sind, müssen Sie sich neu anmelden damit die neuen Berechtigungen wirksam werden.');
+      }
+      if (error.message === 'USER_NOT_AUTHORIZED') {
+        throw new Error('Zugriff verweigert: Sie sind nicht Mitglied der autorisierten Gruppe.\n\nBitte wenden Sie sich an Ihren Administrator, um Zugriff zu erhalten.');
+      }
     }
-    
+
     throw new Error('Microsoft Authentication konnte nicht initialisiert werden. Bitte überprüfen Sie die Konfiguration.');
   }
 };
