@@ -75,8 +75,12 @@ export const updateGroupText = async (groupId: number, clientText: string): Prom
       throw new Error(errorMessage);
     }
 
-    const data = await response.json();
-    return data;
+    // Check if response has content before parsing JSON
+    const text = await response.text();
+    if (text) {
+      return JSON.parse(text);
+    }
+    return { success: true };
   } catch (error) {
     console.error('Error updating group text:', error);
     throw error;
