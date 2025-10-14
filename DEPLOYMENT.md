@@ -45,12 +45,37 @@ VITE_DEBUG=false
 ```
 
 ### Step 3: Azure AD Configuration
-After deploying to Vercel, update Azure AD App Registration:
+After deploying to Vercel, configure Azure AD App Registration:
 
-1. Azure Portal → App Registrations → [Your App]
-2. Authentication → Redirect URIs
-3. Add production URI: `https://your-app.vercel.app/auth/callback`
-4. Save changes
+CRITICAL: The app MUST be configured as a Single-Page Application (SPA), not as a Web app!
+
+1. Go to Azure Portal → Azure Active Directory → App Registrations → [Your App]
+
+2. Navigate to **Authentication** section
+
+3. Under **Platform configurations**:
+   - If you see a "Web" platform, click the three dots and **Remove** it
+   - Click **Add a platform**
+   - Select **Single-page application**
+   - Add these Redirect URIs:
+     - `https://satis-fy-gruppentext-editor.vercel.app`
+     - `http://localhost:5173` (for local development)
+   - Click **Configure**
+
+4. Under **Implicit grant and hybrid flows**:
+   - Uncheck all boxes (not needed for SPA with PKCE)
+
+5. Navigate to **Token configuration** section
+
+6. Add groups claim:
+   - Click **Add groups claim**
+   - Select **Security groups**
+   - Check **Group ID** for **ID** tokens
+   - Click **Add**
+
+7. Save all changes
+
+8. Important: Users must log out and log back in for group claims to take effect
 
 ### Step 4: Deploy
 1. Push code to GitHub main branch

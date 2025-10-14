@@ -181,6 +181,9 @@ export const initializeMsal = async (): Promise<void> => {
       if (error.message?.includes('redirect_uri') || error.message?.includes('AADSTS50011')) {
         throw new Error('Redirect URI ist nicht konfiguriert. Der Kunde muss http://localhost:5173/auth/callback in der Azure AD App Registration hinzufügen.');
       }
+      if (error.message?.includes('AADSTS9002326') || error.message?.includes('Single-Page Application')) {
+        throw new Error('Azure AD App ist nicht als "Single-Page Application" konfiguriert.\n\nLösung:\n1. Gehen Sie zum Azure Portal → Azure Active Directory\n2. App registrations → Ihre App → Authentication\n3. Unter "Platform configurations" klicken Sie auf "Add a platform"\n4. Wählen Sie "Single-page application"\n5. Fügen Sie die Redirect URIs hinzu:\n   - https://satis-fy-gruppentext-editor.vercel.app\n   - http://localhost:5173 (für Development)\n6. WICHTIG: Entfernen Sie die "Web" Platform-Konfiguration falls vorhanden\n7. Speichern Sie die Konfiguration\n\nDie App muss als SPA konfiguriert sein für CORS-Token-Redemption.');
+      }
       if (error.message === 'GROUPS_CLAIM_MISSING') {
         throw new Error('Azure AD ist nicht korrekt konfiguriert: Die "groups" Berechtigung fehlt im Token.\n\nLösung:\n1. Gehen Sie zum Azure Portal\n2. App Registrations → Ihre App → Token configuration\n3. Klicken Sie auf "Add groups claim"\n4. Wählen Sie "Security groups" und aktivieren Sie "Group ID" für ID tokens\n5. Speichern Sie die Konfiguration\n\nFalls Sie bereits Gruppenmitglied sind, müssen Sie sich neu anmelden damit die neuen Berechtigungen wirksam werden.');
       }
