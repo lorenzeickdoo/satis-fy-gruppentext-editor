@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { MsalProvider } from '@azure/msal-react';
 import { msalInstance, initializeMsal } from './services/auth';
 import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
 import App from './App.tsx';
 import './index.css';
 
@@ -16,7 +17,9 @@ const initializeAndRender = async () => {
       <StrictMode>
         <MsalProvider instance={msalInstance}>
           <AuthProvider>
-            <App />
+            <ToastProvider>
+              <App />
+            </ToastProvider>
           </AuthProvider>
         </MsalProvider>
       </StrictMode>

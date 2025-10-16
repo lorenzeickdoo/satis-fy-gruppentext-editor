@@ -6,8 +6,10 @@ import { saveAITextEvaluation } from './services/supabase';
 import { TextGroup, AISettings, ApiResponse } from './types/api';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import UserProfile from './components/auth/UserProfile';
+import { useToast } from './contexts/ToastContext';
 
 function App() {
+  const { showToast } = useToast();
   const [textGroups, setTextGroups] = useState<TextGroup[]>([]);
   const [originalTextGroups, setOriginalTextGroups] = useState<TextGroup[]>([]);
   const [jobData, setJobData] = useState<{
@@ -60,8 +62,7 @@ function App() {
 
   // Update status tracking
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
-  const [updateStatus, setUpdateStatus] = useState<string>('');
-  
+
   // Track generation start time for evaluation data
   const [generationStartTime, setGenerationStartTime] = useState<Date | null>(null);
 
@@ -183,21 +184,20 @@ function App() {
     if (!apiResponse) return;
 
     setIsUpdating(true);
-    setUpdateStatus('');
-    
+
     try {
       // Find all groups that have been modified
       const changedGroups = textGroups.filter((group, index) => {
         const originalGroup = originalTextGroups[index];
         return originalGroup && group.content !== originalGroup.content;
       });
-      
+
       console.log(`Updating ${changedGroups.length} changed groups...`);
-      
+
       // Update each changed group sequentially
       let successCount = 0;
       let errorCount = 0;
-      
+
       for (const group of changedGroups) {
         try {
           console.log(`Updating group ${group.name} (ID: ${group.originalId})...`);
@@ -209,23 +209,21 @@ function App() {
           console.error(`❌ Failed to update ${group.name}:`, error);
         }
       }
-      
-      // Update status message
+
+      // Show toast notification based on results
       if (errorCount === 0) {
-        setUpdateStatus(`✅ Erfolgreich: ${successCount} Gruppe(n) aktualisiert`);
+        showToast(`Erfolgreich: ${successCount} Gruppe(n) aktualisiert`, 'success');
         // Update originalTextGroups to reflect the current state
         setOriginalTextGroups(JSON.parse(JSON.stringify(textGroups)));
       } else {
-        setUpdateStatus(`⚠️ ${successCount} erfolgreich, ${errorCount} Fehler`);
+        showToast(`${successCount} erfolgreich, ${errorCount} Fehler`, 'error');
       }
-      
+
     } catch (error) {
       console.error('Update error:', error);
-      setUpdateStatus('❌ Fehler beim Aktualisieren');
+      showToast('Fehler beim Aktualisieren', 'error');
     } finally {
       setIsUpdating(false);
-      // Clear status after 3 seconds
-      setTimeout(() => setUpdateStatus(''), 3000);
     }
   };
 
@@ -591,22 +589,17 @@ function App() {
                   disabled={!apiResponse || !hasChanges || isUpdating}
                   className="px-4 py-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isUpdating ? 'Updating...' : 'Update'}
+                  {isUpdating ? 'Speichere...' : 'Änderungen übernehmen'}
                 </button>
-                {updateStatus && (
-                  <div className="text-xs text-center max-w-32">
-                    {updateStatus}
-                  </div>
-                )}
                 <button
                   onClick={toggleAITool}
                   className={`flex items-center justify-center space-x-2 px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                    showAITool 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    showAITool
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
-                  <Settings className="w-4 h-4" />
+                  <Sparkles className="w-4 h-4" />
                   <span>AI Tool</span>
                 </button>
               </div>
@@ -879,7 +872,7 @@ function App() {
                         onClick={handleApplyChanges}
                         className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
                       >
-                        Apply
+                        Übernehmen
                       </button>
                     </div>
                   </div>
