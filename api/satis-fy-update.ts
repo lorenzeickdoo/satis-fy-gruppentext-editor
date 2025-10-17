@@ -7,6 +7,11 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
+  // Only allow PATCH requests
+  if (req.method !== 'PATCH') {
+    return res.status(405).json({ error: 'Method not allowed. Use PATCH.' });
+  }
+
   // Validate Bearer token is configured
   if (!BEARER_TOKEN) {
     return res.status(500).json({
@@ -14,47 +19,36 @@ export default async function handler(
     });
   }
 
-  // Extract the path from the query parameter
-  const { path } = req.query;
-  const apiPath = Array.isArray(path) ? path.join('/') : path || '';
-
   // Construct the full API URL
-  const apiUrl = `${API_BASE_URL}/easyjob/grouptext/${apiPath}`;
+  const apiUrl = `${API_BASE_URL}/easyjob/grouptext/updateGroupText`;
 
   try {
-    // Prepare fetch options
-    const fetchOptions: RequestInit = {
-      method: req.method,
+    // Make the proxied request
+    const response = await fetch(apiUrl, {
+      method: 'PATCH',
       headers: {
+        'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Authorization': `Bearer ${BEARER_TOKEN}`,
       },
-    };
+      body: JSON.stringify(req.body),
+    });
 
-    // Add body for PATCH/POST requests
-    if (req.method === 'PATCH' || req.method === 'POST') {
-      fetchOptions.headers = {
-        ...fetchOptions.headers,
-        'Content-Type': 'application/json',
-      };
-      fetchOptions.body = JSON.stringify(req.body);
+    if (!response.ok) {
+      const errorText = await response.text();
+      return res.status(response.status).json({
+        error: `SATIS&FY API Error: ${response.status}`,
+        message: errorText
+      });
     }
 
-    // Make the proxied request
-    const response = await fetch(apiUrl, fetchOptions);
-
-    // Get response text first to handle empty responses
+    // Check if response has content before parsing JSON
     const text = await response.text();
-
-    // Set status code
-    res.status(response.status);
-
-    // Return JSON if there's content, otherwise success message
     if (text) {
       const data = JSON.parse(text);
-      return res.json(data);
+      return res.status(200).json(data);
     } else {
-      return res.json({ success: true });
+      return res.status(200).json({ success: true });
     }
   } catch (error: any) {
     console.error('SATIS&FY API Proxy Error:', error);

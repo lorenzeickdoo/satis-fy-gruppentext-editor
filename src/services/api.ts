@@ -1,11 +1,9 @@
 import { ApiResponse } from '../types/api';
 
 // Use serverless functions as proxy to keep API tokens secure
-const API_PROXY_BASE = '/api/satis-fy';
-
 export const fetchGroupTextData = async (jobNumber: string): Promise<ApiResponse> => {
   try {
-    const response = await fetch(`${API_PROXY_BASE}/getGroupText/${jobNumber}`, {
+    const response = await fetch(`/api/satis-fy-get?jobNumber=${encodeURIComponent(jobNumber)}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -35,7 +33,7 @@ export const fetchGroupTextData = async (jobNumber: string): Promise<ApiResponse
 
 export const updateGroupText = async (groupId: number, clientText: string): Promise<any> => {
   try {
-    const response = await fetch(`${API_PROXY_BASE}/updateGroupText`, {
+    const response = await fetch('/api/satis-fy-update', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
