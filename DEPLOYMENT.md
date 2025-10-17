@@ -17,32 +17,48 @@
    - **Install Command**: `npm install`
 
 ### Step 2: Environment Variables
-Add these environment variables in Vercel Dashboard:
+
+Add these environment variables in Vercel Dashboard (Settings → Environment Variables).
+
+**IMPORTANT SECURITY NOTE:**
+- Variables with `VITE_` prefix are embedded in the frontend bundle (visible to users)
+- Variables WITHOUT `VITE_` prefix are ONLY available to serverless functions (secure)
+- The application uses Vercel Serverless Functions in `/api` folder to proxy sensitive API calls
+
+#### Frontend Variables (VITE_ prefix - Public)
 
 ```bash
 # Microsoft Azure AD Configuration
 VITE_AZURE_CLIENT_ID=9c3ad78d-158d-4fea-b297-da26a3f162bf
 VITE_AZURE_TENANT_ID=4f8651fc-44cc-49c6-83d1-ca55c5197f34
-VITE_AZURE_REDIRECT_URI=https://your-app.vercel.app/auth/callback
+VITE_AZURE_REDIRECT_URI=https://your-app.vercel.app
 VITE_AZURE_AUTHORITY=https://login.microsoftonline.com/4f8651fc-44cc-49c6-83d1-ca55c5197f34
 VITE_AZURE_GROUP_ID=fd7e18ec-84f8-4ac8-ae9a-6e4c151a3834
 
-# Supabase Configuration
+# Supabase Configuration (ANON key is designed for frontend use with Row Level Security)
 VITE_SUPABASE_URL=https://nbwfboyjhggvbrnewsrb.supabase.co
-VITE_SUPABASE_ANON_KEY=[supabase-key]
-
-# OpenRouter API Configuration  
-VITE_OPENROUTER_API_KEY=Bearer [api-key]
-
-# API Configuration
-VITE_API_BASE_URL=https://api.satis-fy.com/api/v1
-VITE_API_BEARER_TOKEN=[bearer-token]
+VITE_SUPABASE_ANON_KEY=[supabase-anon-key]
 
 # App Configuration
 VITE_APP_TITLE=SATIS&FY Group Text Editor
 VITE_APP_VERSION=1.0.0
-VITE_DEBUG=false
+VITE_DEV_BYPASS_SSO=false
 ```
+
+#### Backend Variables (NO VITE_ prefix - Serverless Functions Only - SECURE)
+
+```bash
+# OpenRouter API Configuration
+# IMPORTANT: Must include "Bearer " prefix
+OPENROUTER_API_KEY=Bearer sk-or-v1-[your-api-key]
+
+# SATIS&FY API Configuration
+API_BEARER_TOKEN=[your-bearer-token]
+```
+
+**Note:** The `/api` folder contains serverless functions that act as secure proxies:
+- `/api/satis-fy/[...path].ts` - Proxies SATIS&FY API calls with `API_BEARER_TOKEN`
+- `/api/openrouter.ts` - Proxies OpenRouter API calls with `OPENROUTER_API_KEY`
 
 ### Step 3: Azure AD Configuration
 After deploying to Vercel, configure Azure AD App Registration:
@@ -85,10 +101,14 @@ CRITICAL: The app MUST be configured as a Single-Page Application (SPA), not as 
 ## 🔒 Security Checklist
 
 - ✅ Environment variables configured in Vercel (not in code)
+- ✅ Sensitive API tokens (OpenRouter, SATIS&FY) only in backend (no VITE_ prefix)
+- ✅ Serverless functions in `/api` folder proxy all sensitive API calls
+- ✅ No API keys or bearer tokens exposed in frontend bundle
 - ✅ Azure AD Redirect URI updated for production
 - ✅ Group-based authorization active
 - ✅ HTTPS enforced (automatic with Vercel)
 - ✅ .env.local excluded from git
+- ✅ Debug logging removed from production code
 
 ## 🧪 Post-Deployment Testing
 

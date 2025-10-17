@@ -5,12 +5,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ### Development
-- `npm run dev` - Start Vite development server on http://localhost:5173
+- `vercel dev` - Start Vercel dev server with serverless functions on http://localhost:3000 (RECOMMENDED)
+- `npm run dev` - Start Vite development server on http://localhost:5173 (frontend only, no API routes)
 - `npm run build` - Build production bundle to `dist/` directory
 - `npm run preview` - Preview production build locally
 
 ### Code Quality
 - `npm run lint` - Run ESLint to check code quality
+
+### Important Note
+Use `vercel dev` for local development to test the full application including serverless API routes. See `LOCAL_DEVELOPMENT.md` for detailed setup instructions.
 
 ## Architecture Overview
 
@@ -22,18 +26,27 @@ The application fetches group text data from SATIS&FY API based on job numbers, 
 ### Key Services
 
 **API Integration (`src/services/api.ts`)**
-- Fetches group text data from `https://api.satis-fy.com/api/v1/easyjob/grouptext/getGroupText`
+- Calls serverless proxy endpoints at `/api/satis-fy/*`
+- Fetches group text data from SATIS&FY API
 - Updates group texts via PATCH requests
-- Uses Bearer token authentication
+- NO sensitive tokens in frontend (proxied through serverless functions)
+
+**Serverless API Proxies (`/api` folder)**
+- `/api/satis-fy/[...path].ts` - Proxies SATIS&FY API calls with secure Bearer token
+- `/api/openrouter.ts` - Proxies OpenRouter API calls with secure API key
+- Uses environment variables WITHOUT `VITE_` prefix (server-side only)
+- Automatically deployed as Vercel Serverless Functions
 
 **OpenAI Integration (`src/services/openai.ts`)**
-- Generates text content using OpenAI's GPT-4.1-mini model
+- Calls `/api/openrouter` proxy endpoint
+- Generates text content using OpenAI's GPT-4.1-mini model via OpenRouter
 - Supports customizable settings (length, language)
 - Handles bulk generation for multiple groups
 
 **Supabase Integration (`src/services/supabase.ts`)**
 - Stores AI text evaluation data for analytics
 - Tracks user acceptance/rejection of generated texts
+- Uses ANON key (designed for frontend with Row Level Security)
 
 ### Main Application Flow
 1. User enters a job number to load group text data
@@ -70,8 +83,16 @@ The application includes a complete Microsoft OAuth 2.0 single sign-on implement
 - **Backend Services**: SATIS&FY API, OpenAI API, Supabase
 
 ## Environment Variables
-The application uses Vite environment variables (see `.env.example`):
-- **Microsoft Azure AD**: Client ID, Tenant ID, Group ID, Redirect URIs
-- **API Credentials**: SATIS&FY API, OpenRouter API tokens
-- **Supabase**: Database connection for analytics
-- **Configuration**: App title, version, debug mode
+
+The application uses two types of environment variables (see `.env.example`):
+
+**Frontend Variables (VITE_ prefix - embedded in bundle, visible to users):**
+- Microsoft Azure AD: Client ID, Tenant ID, Group ID, Redirect URIs
+- Supabase: URL and ANON key (designed for frontend use with RLS)
+- Configuration: App title, version
+
+**Backend Variables (NO VITE_ prefix - server-side only, SECURE):**
+- `OPENROUTER_API_KEY` - OpenRouter API key for AI text generation
+- `API_BEARER_TOKEN` - SATIS&FY API bearer token
+
+**Security Note:** All sensitive API tokens are kept server-side in serverless functions and NEVER exposed to the frontend bundle.

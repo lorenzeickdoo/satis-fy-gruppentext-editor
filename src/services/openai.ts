@@ -1,6 +1,5 @@
-// OpenAI API service
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+// OpenAI API service - using serverless function as proxy to keep API key secure
+const OPENROUTER_PROXY_URL = '/api/openrouter';
 
 export interface OpenAIRequest {
   groupName: string;
@@ -20,9 +19,6 @@ export interface OpenAIRequest {
 }
 
 export const generateTextWithOpenAI = async (request: OpenAIRequest): Promise<string> => {
-  if (!OPENROUTER_API_KEY) {
-    throw new Error('OpenRouter API Key ist nicht konfiguriert. Bitte setzen Sie VITE_OPENROUTER_API_KEY in der .env Datei');
-  }
 
   // Build articles context
   const articlesContext = request.articles.map(article => 
@@ -160,19 +156,17 @@ ${request.settings.language === 'English'
 Erzeuge den finalen Beschreibungstext:`;
 
   try {
-    const response = await fetch(OPENROUTER_API_URL, {
+    const response = await fetch(OPENROUTER_PROXY_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': OPENROUTER_API_KEY,
-        //'HTTP-Referer': 'https://localhost:5173',
       },
       body: JSON.stringify({
         model: 'openai/gpt-4.1-mini',
         messages: [
           {
             role: 'system',
-            content: request.settings.language === 'English' 
+            content: request.settings.language === 'English'
               ? 'You are a professional copywriter who creates high-quality proposals and service specifications. ALWAYS respond in the requested language!'
               : 'Du bist ein professioneller Texter, der hochwertige Angebote und Leistungsverzeichnisse erstellt.'
           },
@@ -186,7 +180,7 @@ Erzeuge den finalen Beschreibungstext:`;
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`OpenRouter API Error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+      throw new Error(`OpenRouter API Error: ${response.status} - ${errorData.error?.message || errorData.message || 'Unknown error'}`);
     }
 
     const data = await response.json();

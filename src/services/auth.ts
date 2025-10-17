@@ -112,17 +112,6 @@ export const initializeMsal = async (): Promise<void> => {
         if (response.idToken) {
           const decodedToken = jwtDecode<DecodedToken>(response.idToken);
 
-          // Debug logging for token claims
-          if (import.meta.env.VITE_DEBUG === 'true') {
-            console.log('Token claims received:', {
-              hasGroups: !!decodedToken.groups,
-              groupsCount: decodedToken.groups?.length || 0,
-              groups: decodedToken.groups,
-              email: decodedToken.preferred_username || decodedToken.email,
-              name: decodedToken.name
-            });
-          }
-
           // Check if groups claim is missing
           if (!decodedToken.groups || decodedToken.groups.length === 0) {
             console.error('CRITICAL: groups claim is missing from ID token');
